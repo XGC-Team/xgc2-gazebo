@@ -5,6 +5,7 @@ ca-certificates
 cmake
 pkg-config
 python3
+ruby
 wget
 protobuf-compiler
 libprotoc-dev
