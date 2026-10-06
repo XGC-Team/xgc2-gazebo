@@ -23,7 +23,9 @@ source env.bash
 ./bootstrap.sh build
 ```
 
-`./bootstrap.sh` 只在安装系统库时请求 sudo。Gazebo 装进检出目录的 `gazebo/usr`，不需要 root。`gazebo/usr` 按 Ubuntu 20.04 上 `gazebo11` 11.15.1 的 `/usr` 布局摆放：`bin/`、`include/gazebo-11/`、`lib/x86_64-linux-gnu/`、`share/gazebo-11/`。
+`./bootstrap.sh` 只在安装系统库时请求 sudo。默认把 Gazebo 装进检出目录的 `gazebo/usr`，不需要 root，也不写入 `/usr`。目录按 Ubuntu 20.04 上 `gazebo11` 11.15.1 的 `/usr` 布局摆放：`bin/`、`include/gazebo-11/`、`lib/<架构>-linux-gnu/`、`share/gazebo-11/`。amd64 的库目录是 `lib/x86_64-linux-gnu`，arm64 是 `lib/aarch64-linux-gnu`。
+
+要装到别的前缀时设置 `XGC2_GAZEBO_PREFIX`。和 Noetic 一起发布时，前缀是 `/opt/ros/noetic/opt/gazebo`。`source /opt/ros/noetic/setup.bash` 会加载 `prefix.sh`，把这个前缀的命令和 CMake、pkg-config 路径放到前面。未加载时，这些路径不在默认搜索里。
 
 ## 这个分支构建什么
 

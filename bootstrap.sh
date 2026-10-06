@@ -15,6 +15,17 @@ MAX_JOBS=16
 log() { printf '%s\n' "$*" >&2; }
 die() { printf '%s\n' "$*" >&2; exit 1; }
 
+LIBDIR=""
+set_libdir() {
+  local multi
+  case "$(dpkg --print-architecture)" in
+    amd64) multi=x86_64-linux-gnu ;;
+    arm64) multi=aarch64-linux-gnu ;;
+    *) die "Unsupported architecture: $(dpkg --print-architecture)" ;;
+  esac
+  LIBDIR="lib/${multi}"
+}
+
 job_count() {
   local jobs="${GAZEBO_BUILD_JOBS:-$MAX_JOBS}"
   local host avail_kb mem_jobs avail_gib
@@ -118,7 +129,7 @@ cmd_fetch() {
 
 prepare_prefix_env() {
   export CMAKE_PREFIX_PATH="${PREFIX}${CMAKE_PREFIX_PATH:+:${CMAKE_PREFIX_PATH}}"
-  local libdir="${PREFIX}/lib/x86_64-linux-gnu"
+  local libdir="${PREFIX}/${LIBDIR}"
   export PKG_CONFIG_PATH="${libdir}/pkgconfig${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
   export LD_LIBRARY_PATH="${libdir}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 }
@@ -147,9 +158,9 @@ build_one() {
   cmake -S "$src" -B "$bld" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" \
-    -DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu \
+    -DCMAKE_INSTALL_LIBDIR="${LIBDIR}" \
     -DCMAKE_PREFIX_PATH="$PREFIX" \
-    -DCMAKE_INSTALL_RPATH="${PREFIX}/lib/x86_64-linux-gnu;${PREFIX}/lib" \
+    -DCMAKE_INSTALL_RPATH="${PREFIX}/${LIBDIR};${PREFIX}/lib" \
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
     -DBUILD_TESTING=OFF \
     "${extra[@]}"
@@ -171,17 +182,17 @@ cmd_build() {
 
 cmd_smoke() {
   [[ -x "${PREFIX}/bin/gazebo" ]] || die "gazebo is missing under ${PREFIX}"
-  [[ -f "${PREFIX}/lib/x86_64-linux-gnu/libgazebo.so.11" ]] || die "libgazebo.so.11 is missing"
-  [[ -f "${PREFIX}/lib/x86_64-linux-gnu/cmake/gazebo/gazebo-config.cmake" ]] || die "gazebo-config.cmake is missing"
-  [[ -d "${PREFIX}/lib/x86_64-linux-gnu/gazebo-11/plugins" ]] || die "Gazebo plugins are missing"
+  [[ -f "${PREFIX}/${LIBDIR}/libgazebo.so.11" ]] || die "libgazebo.so.11 is missing"
+  [[ -f "${PREFIX}/${LIBDIR}/cmake/gazebo/gazebo-config.cmake" ]] || die "gazebo-config.cmake is missing"
+  [[ -d "${PREFIX}/${LIBDIR}/gazebo-11/plugins" ]] || die "Gazebo plugins are missing"
   local reported
   reported="$(
     PATH="${PREFIX}/bin:${PATH}" \
-    LD_LIBRARY_PATH="${PREFIX}/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
+    LD_LIBRARY_PATH="${PREFIX}/${LIBDIR}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
       "${PREFIX}/bin/gazebo" --version
   )"
   printf '%s\n' "$reported" | grep -q "${VERSION}" || die "gazebo --version did not report ${VERSION}: ${reported}"
-  PKG_CONFIG_PATH="${PREFIX}/lib/x86_64-linux-gnu/pkgconfig" pkg-config --exists gazebo \
+  PKG_CONFIG_PATH="${PREFIX}/${LIBDIR}/pkgconfig" pkg-config --exists gazebo \
     || die "pkg-config cannot see gazebo"
   log "Smoke check passed for Gazebo ${VERSION} at ${PREFIX}."
   log "Load this prefix when you need it: source env.bash"
@@ -206,6 +217,7 @@ EOF
 }
 
 main() {
+  set_libdir
   local cmd="${1:-all}"
   case "$cmd" in
     all)
