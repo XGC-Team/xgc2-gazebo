@@ -35,6 +35,8 @@ libbullet-dev
 libccd-dev
 uuid-dev
 libzmq3-dev
+cppzmq-dev
+libeigen3-dev
 libsqlite3-dev
 libjsoncpp-dev
 libyaml-dev

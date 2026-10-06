@@ -60,10 +60,13 @@ job_count() {
 }
 
 require_ubuntu() {
+  # /etc/os-release also sets VERSION. Keep that name for the Gazebo release.
   # shellcheck disable=SC1091
-  . /etc/os-release
-  if [[ "${VERSION_ID:-}" != "24.04" && "${ALLOW_OTHER_UBUNTU:-}" != 1 ]]; then
-    die "This branch builds on Ubuntu 24.04. This machine is ${PRETTY_NAME:-unknown}. Set ALLOW_OTHER_UBUNTU=1 to continue anyway."
+  local version_id pretty_name
+  version_id="$(. /etc/os-release && printf '%s' "${VERSION_ID:-}")"
+  pretty_name="$(. /etc/os-release && printf '%s' "${PRETTY_NAME:-unknown}")"
+  if [[ "$version_id" != "24.04" && "${ALLOW_OTHER_UBUNTU:-}" != 1 ]]; then
+    die "This branch builds on Ubuntu 24.04. This machine is ${pretty_name}. Set ALLOW_OTHER_UBUNTU=1 to continue anyway."
   fi
 }
 
@@ -165,6 +168,11 @@ build_one() {
     -DBUILD_TESTING=OFF \
     "${extra[@]}"
   cmake --build "$bld" -j"$jobs"
+  # roffman() installs gz.1.gz, but that file is not part of the default
+  # target. cmake --install fails unless man-gz is built first.
+  if [[ -f "$bld/Makefile" ]] && grep -q '^man-gz:' "$bld/Makefile"; then
+    cmake --build "$bld" -j"$jobs" --target man-gz
+  fi
   cmake --install "$bld"
   mkdir -p "$WORK/stamps"
   printf '%s\n' "$sha" > "$stamp"
@@ -186,10 +194,11 @@ cmd_smoke() {
   [[ -f "${PREFIX}/${LIBDIR}/cmake/gazebo/gazebo-config.cmake" ]] || die "gazebo-config.cmake is missing"
   [[ -d "${PREFIX}/${LIBDIR}/gazebo-11/plugins" ]] || die "Gazebo plugins are missing"
   local reported
+  # Upstream exits 255 after printing --version. The text is the check.
   reported="$(
     PATH="${PREFIX}/bin:${PATH}" \
     LD_LIBRARY_PATH="${PREFIX}/${LIBDIR}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
-      "${PREFIX}/bin/gazebo" --version
+      "${PREFIX}/bin/gazebo" --version || true
   )"
   printf '%s\n' "$reported" | grep -q "${VERSION}" || die "gazebo --version did not report ${VERSION}: ${reported}"
   PKG_CONFIG_PATH="${PREFIX}/${LIBDIR}/pkgconfig" pkg-config --exists gazebo \
