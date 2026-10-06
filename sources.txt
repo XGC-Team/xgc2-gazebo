@@ -1,0 +1,11 @@
+# name sha256 url
+# Build order is file order. Versions match the Focal OSRF gazebo11 11.15.1 stack.
+ignition-cmake afd592085d1a6ebbc80c72408d1823633585ee578f13ac86e07db48405f2f1a4 https://github.com/gazebosim/gz-cmake/archive/refs/tags/ignition-cmake2_2.19.0.tar.gz
+ignition-math 5eea5a25773fe2887a3ddb2aca922c21c95a09233781465b3b59fda69145233b https://github.com/gazebosim/gz-math/archive/refs/tags/ignition-math6_6.17.0.tar.gz
+ignition-tools cc99189063b6556e539836a438bdbb9da6eca1fe95a7058d46bfc17debc3d8f5 https://github.com/gazebosim/gz-tools/archive/refs/tags/ignition-tools_1.5.0.tar.gz
+ignition-common c491ac83164a39ba86a74e34d096754d2f5e93d2a16aec30e15b736575d58e35 https://github.com/gazebosim/gz-common/archive/refs/tags/ignition-common3_3.17.1.tar.gz
+ignition-msgs f1859c206a7d9235eea766665057d7db6f7f69e71a3a90122a0abecf2018d0e8 https://github.com/gazebosim/gz-msgs/archive/refs/tags/ignition-msgs5_5.11.1.tar.gz
+ignition-transport e3bf95755c1e91ab91fae80bfeb8e3bf59b91f34142cd69a878ab2d85e990a64 https://github.com/gazebosim/gz-transport/archive/refs/tags/ignition-transport8_8.5.1.tar.gz
+sdformat ec6e7e5a5eaf7dfb3bfedeb55c5b348ec74bce44e1e1fbe2f29ab9df335c6ca6 https://github.com/gazebosim/sdformat/archive/refs/tags/sdformat9_9.10.2.tar.gz
+ignition-fuel-tools 876dfa5b9a8dade7fcbcf03635b33c99a3008f218aa9a6ac064e9a4388f0c066 https://github.com/gazebosim/gz-fuel-tools/archive/refs/tags/ignition-fuel-tools4_4.9.2.tar.gz
+gazebo 77a952971eabfd79e16d2582a355ee017a2e22cc369b68453323c0984b725126 https://github.com/gazebosim/gazebo-classic/archive/refs/tags/gazebo11_11.15.1.tar.gz
